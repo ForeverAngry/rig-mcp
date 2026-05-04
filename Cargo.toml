@@ -12,7 +12,7 @@ keywords = ["rig", "mcp", "rmcp", "agent", "ai"]
 categories = ["asynchronous"]
 
 [dependencies]
-rig-compose = { path = "../rig-compose", version = "0.1" }
+rig-compose = "0.1"
 async-trait = "0.1"
 serde_json = "1.0"
 tokio = { version = "1.40", features = ["rt-multi-thread", "macros", "sync", "process", "io-util", "io-std", "time"] }

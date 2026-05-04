@@ -57,7 +57,7 @@ impl RegistryServer {
         #[allow(clippy::field_reassign_with_default)]
         let server_info = {
             let mut s = Implementation::default();
-            s.name = "rig-compose".to_string();
+            s.name = env!("CARGO_PKG_NAME").to_string();
             s.version = env!("CARGO_PKG_VERSION").to_string();
             s
         };

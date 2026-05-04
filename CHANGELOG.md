@@ -9,6 +9,12 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
+## [0.1.1](https://github.com/ForeverAngry/rig-mcp/compare/v0.1.0...v0.1.1) - 2026-05-04
+
+### Fixed
+
+- Depend on rig-compose from crates.io (drop sibling path)
+
 ## [0.1.0] - Unreleased
 
 ### Added

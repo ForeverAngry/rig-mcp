@@ -8,7 +8,7 @@ description = "Model Context Protocol bridge for rig-compose tool registries. Wr
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/ForeverAngry/rig-mcp"
 readme = "README.md"
-keywords = ["rig", "mcp", "model-context-protocol", "rmcp", "agent"]
+keywords = ["rig", "mcp", "rmcp", "agent", "ai"]
 categories = ["asynchronous"]
 
 [dependencies]

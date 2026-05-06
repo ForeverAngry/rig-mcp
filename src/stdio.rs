@@ -20,13 +20,12 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use serde_json::{Value, json};
 use tokio::process::Command;
-use tokio::sync::Mutex;
 
 use rmcp::model::{
     CallToolRequestParams, CallToolResult, Content, Implementation, ListToolsResult,
     PaginatedRequestParams, ProtocolVersion, ServerCapabilities, ServerInfo, Tool as RmcpTool,
 };
-use rmcp::service::{RequestContext, RoleClient, RoleServer, RunningService, ServiceExt};
+use rmcp::service::{Peer, RequestContext, RoleClient, RoleServer, RunningService, ServiceExt};
 use rmcp::transport::{ConfigureCommandExt, TokioChildProcess, stdio as rmcp_stdio};
 use rmcp::{ErrorData as McpError, ServerHandler};
 
@@ -154,9 +153,18 @@ pub async fn serve_stdio(registry: ToolRegistry) -> Result<(), KernelError> {
 
 /// Production stdio MCP client. Wraps an [`rmcp`] running service so
 /// that callers see only the [`McpTransport`] trait.
+///
+/// The cloneable [`Peer`] is cached at construction time so every
+/// `list_tools` / `call_tool` is a lock-free dispatch into rmcp.
+/// Concurrent calls fan out without serialising on a transport-level
+/// mutex; rmcp itself multiplexes the underlying stdio channel.
 pub struct StdioTransport {
     endpoint: String,
-    service: Arc<Mutex<Option<RunningService<RoleClient, ()>>>>,
+    peer: Peer<RoleClient>,
+    /// Keeps the rmcp service task alive for the lifetime of the
+    /// transport. Held but never read — dropping the transport drops
+    /// the service, which closes the child's stdio.
+    _service: Arc<RunningService<RoleClient, ()>>,
 }
 
 impl StdioTransport {
@@ -180,9 +188,11 @@ impl StdioTransport {
             .serve(transport)
             .await
             .map_err(|e| KernelError::ToolFailed(format!("mcp.connect: {e}")))?;
+        let peer = service.peer().clone();
         Ok(Self {
             endpoint: endpoint.into(),
-            service: Arc::new(Mutex::new(Some(service))),
+            peer,
+            _service: Arc::new(service),
         })
     }
 }
@@ -194,12 +204,8 @@ impl McpTransport for StdioTransport {
     }
 
     async fn list_tools(&self) -> Result<Vec<ToolSchema>, KernelError> {
-        let guard = self.service.lock().await;
-        let svc = guard
-            .as_ref()
-            .ok_or_else(|| KernelError::ToolFailed("mcp.io: transport closed".into()))?;
-        let tools = svc
-            .peer()
+        let tools = self
+            .peer
             .list_all_tools()
             .await
             .map_err(|e| KernelError::ToolFailed(format!("tools/list: {e}")))?;
@@ -207,10 +213,6 @@ impl McpTransport for StdioTransport {
     }
 
     async fn call_tool(&self, name: &str, args: Value) -> Result<Value, KernelError> {
-        let guard = self.service.lock().await;
-        let svc = guard
-            .as_ref()
-            .ok_or_else(|| KernelError::ToolFailed("mcp.io: transport closed".into()))?;
         let arguments = match args {
             Value::Object(map) => Some(map),
             Value::Null => None,
@@ -227,8 +229,8 @@ impl McpTransport for StdioTransport {
             p.arguments = arguments;
             p
         };
-        let result = svc
-            .peer()
+        let result = self
+            .peer
             .call_tool(params)
             .await
             .map_err(|e| KernelError::ToolFailed(format!("tools/call: {e}")))?;

@@ -9,6 +9,12 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `StdioTransport` now stores the `rmcp` peer handle directly and drops
+  its `tokio::sync::Mutex`, eliminating cross-await lock contention and
+  letting concurrent `tools/list` / `tools/call` RPCs proceed in parallel.
+
 ## [0.1.1](https://github.com/ForeverAngry/rig-mcp/compare/v0.1.0...v0.1.1) - 2026-05-04
 
 ### Fixed

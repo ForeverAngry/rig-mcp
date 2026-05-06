@@ -9,6 +9,13 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/ForeverAngry/rig-mcp/compare/v0.1.1...v0.1.2) - 2026-05-06
+
+### Fixed
+
+- Depend on released rig-compose
+- Remove stdio transport mutex
+
 ### Fixed
 
 - `StdioTransport` now stores the `rmcp` peer handle directly and drops

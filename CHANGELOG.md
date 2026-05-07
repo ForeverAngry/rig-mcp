@@ -9,6 +9,12 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
+## [0.1.3](https://github.com/ForeverAngry/rig-mcp/compare/v0.1.2...v0.1.3) - 2026-05-07
+
+### Documentation
+
+- Remove retired repo references
+
 ## [0.1.2](https://github.com/ForeverAngry/rig-mcp/compare/v0.1.1...v0.1.2) - 2026-05-06
 
 ### Fixed

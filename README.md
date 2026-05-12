@@ -29,6 +29,10 @@ It delegates JSON-RPC framing, capability handshakes, and protocol-version negot
 - `rmcp` dependency: `1.6` with `client`, `server`, `macros`, `transport-io`, and `transport-child-process` features only.
 - Current Unreleased work stores the cloneable `rmcp` peer directly in `StdioTransport`, eliminating a transport-level `tokio::sync::Mutex` around concurrent RPCs.
 
+The crate-local maturity plan lives in [ROADMAP.md](ROADMAP.md). Cross-crate
+coordination lives in
+[`rig-contributions/docs/roadmap.md`](../rig-contributions/docs/roadmap.md).
+
 ## Feature Flags
 
 `rig-mcp` currently defines no crate features. `just check` runs clippy, tests, and docs with `--all-features` to keep future feature additions covered.
@@ -52,6 +56,14 @@ This preserves the same call shape across local tools, `LoopbackTransport`, `Std
 ## Usage
 
 The loopback path is covered by tests in [src/transport.rs](src/transport.rs). This example mirrors `mcp_tool_indistinguishable_from_local`.
+
+[tests/harness.rs](tests/harness.rs) also exercises the loopback path as a
+deterministic harness run. It records task input, endpoint, discovered MCP tool
+names, normalized invocation, MCP-adapted dispatch result, final answer, and
+passed assertions. Together with the `rig-compose` and `rig-memvid` harness
+prototypes, this proves the run-record vocabulary works for local tools,
+memory-aware behavior, and MCP-backed tools before a dedicated harness crate is
+introduced.
 
 ```rust,no_run
 use std::sync::Arc;

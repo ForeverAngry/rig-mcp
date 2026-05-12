@@ -29,6 +29,10 @@ It delegates JSON-RPC framing, capability handshakes, and protocol-version negot
 - `rmcp` dependency: `1.6` with `client`, `server`, `macros`, `transport-io`, and `transport-child-process` features only.
 - Current Unreleased work stores the cloneable `rmcp` peer directly in `StdioTransport`, eliminating a transport-level `tokio::sync::Mutex` around concurrent RPCs.
 
+The crate-local maturity plan lives in [ROADMAP.md](ROADMAP.md). Cross-crate
+coordination lives in
+[`rig-contributions/docs/roadmap.md`](../rig-contributions/docs/roadmap.md).
+
 ## Feature Flags
 
 `rig-mcp` currently defines no crate features. `just check` runs clippy, tests, and docs with `--all-features` to keep future feature additions covered.

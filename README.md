@@ -53,6 +53,14 @@ This preserves the same call shape across local tools, `LoopbackTransport`, `Std
 
 The loopback path is covered by tests in [src/transport.rs](src/transport.rs). This example mirrors `mcp_tool_indistinguishable_from_local`.
 
+[tests/harness.rs](tests/harness.rs) also exercises the loopback path as a
+deterministic harness run. It records task input, endpoint, discovered MCP tool
+names, normalized invocation, MCP-adapted dispatch result, final answer, and
+passed assertions. Together with the `rig-compose` and `rig-memvid` harness
+prototypes, this proves the run-record vocabulary works for local tools,
+memory-aware behavior, and MCP-backed tools before a dedicated harness crate is
+introduced.
+
 ```rust,no_run
 use std::sync::Arc;
 

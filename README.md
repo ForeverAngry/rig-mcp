@@ -22,12 +22,12 @@ It delegates JSON-RPC framing, capability handshakes, and protocol-version negot
 
 ## Status
 
-- Crate version: `0.1.1`.
+- Crate version: `0.1.3`.
 - Rust edition: 2024.
 - MSRV: 1.88.
-- `rig-compose` dependency: `version = "0.1"`, currently resolved through the sibling path [../rig-compose](../rig-compose) in this workspace.
+- `rig-compose` dependency: `version = "0.2"`.
 - `rmcp` dependency: `1.6` with `client`, `server`, `macros`, `transport-io`, and `transport-child-process` features only.
-- Current Unreleased work stores the cloneable `rmcp` peer directly in `StdioTransport`, eliminating a transport-level `tokio::sync::Mutex` around concurrent RPCs.
+- Current Unreleased work stores the cloneable `rmcp` peer directly in `StdioTransport`, eliminating a transport-level `tokio::sync::Mutex` around concurrent RPCs, and adds deterministic stdio failure fixtures.
 
 The crate-local maturity plan lives in [ROADMAP.md](ROADMAP.md). Cross-crate
 coordination lives in
@@ -103,6 +103,8 @@ assert_eq!(output, json!(42));
 
 Production stdio behavior is implemented in [src/stdio.rs](src/stdio.rs). `serve_stdio` exposes a local `ToolRegistry`; `StdioTransport::spawn` starts a child process and speaks MCP over its stdio.
 
+[tests/stdio_failures.rs](tests/stdio_failures.rs) exercises a real child-process fixture for successful stdio calls, unknown tools, missing arguments, wrong argument types, malformed child output, and child exit before handshake.
+
 ## Validation
 
 Canonical validation is `just check`.
@@ -123,7 +125,7 @@ These companion crates are maintained as separate repositories. Together they fo
 ```mermaid
 flowchart TD
     rig["rig / rig-core"]
-    compose["rig-compose 0.1.x"]
+    compose["rig-compose 0.2.x"]
     resources["rig-resources 0.1.x"]
     mcp["rig-mcp 0.1.x"]
     memvid["rig-memvid 0.1.x"]

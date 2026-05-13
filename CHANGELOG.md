@@ -18,6 +18,9 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 - Add `tests/harness.rs`, a deterministic MCP loopback harness prototype that
   records task input, endpoint, discovered tool names, normalized invocation,
   MCP-adapted dispatch result, final answer, and passed assertions.
+- Add deterministic stdio fixtures covering successful child-process calls,
+  unknown tools, missing arguments, wrong argument types, malformed child
+  output, and child exit before handshake.
 
 ## [0.1.3](https://github.com/ForeverAngry/rig-mcp/compare/v0.1.2...v0.1.3) - 2026-05-07
 

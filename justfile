@@ -9,7 +9,7 @@ default:
 build:
     cargo build --all-targets
 
-check: fmt clippy test doc
+check: fmt clippy test msrv doc
 
 fmt:
     cargo fmt --all -- --check
@@ -19,6 +19,9 @@ clippy:
 
 test:
     cargo test --all-targets --all-features
+
+msrv:
+    cargo +1.88 build --all-targets --all-features
 
 doc:
     RUSTDOCFLAGS="-D warnings -D rustdoc::broken_intra_doc_links" cargo doc --all-features --no-deps

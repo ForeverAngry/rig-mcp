@@ -2,57 +2,60 @@
 #
 # Install just: https://github.com/casey/just
 #   brew install just
+#
+# Run `just` with no args to see the recipe list.
 
+# Show all recipes.
 default:
     @just --list
 
+# Build all targets with default features.
 build:
     cargo build --all-targets
 
+# Format check + clippy + tests + msrv + doc.
 check: fmt clippy test msrv doc
 
+# Verify code is formatted (does not mutate).
 fmt:
     cargo fmt --all -- --check
 
+# Clippy across release-relevant feature sets.
 clippy:
     cargo clippy --all-targets --all-features -- -D warnings
 
+# Tests across release-relevant feature sets.
 test:
     cargo test --all-targets --all-features
 
+# MSRV gate (Rust 1.89).
 msrv:
-    cargo +1.88 build --all-targets --all-features
+    cargo +1.89 build --all-targets --all-features
 
+# Rustdoc with strict warnings.
 doc:
     RUSTDOCFLAGS="-D warnings -D rustdoc::broken_intra_doc_links" cargo doc --all-features --no-deps
 
+# Validate the package as it would be uploaded to crates.io.
 publish-dry-run:
     cargo publish --dry-run
 
+# Preview what release-plz would bump/changelog without changing anything.
 release-preview:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    tmp="$(mktemp -d)"
-    trap 'rm -rf "${tmp}"' EXIT
-    rsync -a --exclude target --exclude .git ./ "${tmp}/"
-    cd "${tmp}"
-    git init -q
-    git config user.email "release-preview@example.invalid"
-    git config user.name "Release Preview"
-    git add .
-    git commit -q -m "feat: prepare rig-mcp release preview"
-    release-plz update --repo-url https://github.com/ForeverAngry/rig-mcp
+    release-plz update --dry-run
 
+# Open a release PR locally (writes to a branch). Same thing CI does on push.
 release-pr:
     release-plz release-pr
 
+# Inspect the next semver bump release-plz would compute from current commits.
 next-version:
-    @just release-preview 2>&1 | grep -E "(next version|already up-to-date|rig-mcp)" || true
+    @release-plz update --dry-run 2>&1 | grep -E "(bumping|no changes|next version)" || true
 
-# Run all checks needed for a PR / Commit to main locally
+# Run all checks needed for a PR / commit to main locally.
 pr-ready: check publish-dry-run
 
-# Install a git pre-push hook to automatically run the PR checks
+# Install a git pre-push hook that runs `just pr-ready`.
 install-hooks:
     #!/usr/bin/env bash
     echo '#!/usr/bin/env bash' > .git/hooks/pre-push

@@ -25,7 +25,7 @@ It delegates JSON-RPC framing, capability handshakes, and protocol-version negot
 - Crate version: `0.1.3`.
 - Rust edition: 2024.
 - MSRV: 1.88.
-- `rig-compose` dependency: `version = "0.2"`.
+- `rig-compose` dependency: `version = "0.3"`.
 - `rmcp` dependency: `1.6` with `client`, `server`, `macros`, `transport-io`, and `transport-child-process` features only.
 - Current Unreleased work stores the cloneable `rmcp` peer directly in `StdioTransport`, eliminating a transport-level `tokio::sync::Mutex` around concurrent RPCs, and adds deterministic stdio failure fixtures.
 

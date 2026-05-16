@@ -1,6 +1,6 @@
 # rig-mcp Roadmap
 
-This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate coordination summary lives in [`rig-contributions/docs/roadmap.md`](../rig-contributions/docs/roadmap.md).
+This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate coordination summary lives in [`rig-ecosystem/docs/roadmap.md`](../rig-ecosystem/docs/roadmap.md).
 
 ## Role
 

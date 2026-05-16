@@ -31,7 +31,7 @@ It delegates JSON-RPC framing, capability handshakes, and protocol-version negot
 
 The crate-local maturity plan lives in [ROADMAP.md](ROADMAP.md). Cross-crate
 coordination lives in
-[`rig-contributions/docs/roadmap.md`](../rig-contributions/docs/roadmap.md).
+[`rig-ecosystem/docs/roadmap.md`](../rig-ecosystem/docs/roadmap.md).
 
 ## Feature Flags
 

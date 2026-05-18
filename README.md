@@ -53,7 +53,7 @@ Server-side `tools/list` is answered from `ToolRegistry::schemas`; `tools/call` 
 
 This preserves the same call shape across local tools, `LoopbackTransport`, `StdioTransport`, and future transports.
 
-## Usage
+## Quick start
 
 The loopback path is covered by tests in [src/transport.rs](src/transport.rs). This example mirrors `mcp_tool_indistinguishable_from_local`.
 

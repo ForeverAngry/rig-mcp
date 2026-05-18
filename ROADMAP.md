@@ -15,21 +15,22 @@ This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate co
 - `serve_stdio` for exposing a local `ToolRegistry` as a tools-only MCP server.
 - Deterministic loopback harness test that records endpoint, discovered tools, normalized invocation, adapted dispatch result, final answer, and assertions.
 - Cloneable `rmcp` peer handling without a transport-level async mutex around concurrent RPC calls.
+- Stdio fixture coverage for discovery, tool calls, invalid args, child exit,
+  malformed responses, and service teardown
+  ([tests/stdio_failures.rs](tests/stdio_failures.rs)).
 
 ## Prototype Grade
 
-- Loopback has deterministic harness coverage; stdio needs broader fixture coverage against real child processes.
 - Tool results can be large or tabular, but there is no result governor, cached paging, or projection API yet.
 - Transport tracing exists mostly through tests/logs, not a shared cross-crate trace envelope.
 - No alternate production transports are exposed; this is intentional until a concrete need appears.
 
 ## Next Work
 
-1. Add stdio fixture coverage for discovery, tool calls, invalid args, child exit, malformed responses, and service teardown.
-2. Design an MCP result governor: bounded inline result, cached large result, page/search/schema/release follow-up tools, and explicit truncation reasons.
-3. Exercise the same dispatch and trace assertions for local tools, loopback tools, and stdio tools.
-4. Add timeout, heartbeat, and background-job shapes for long-running MCP tools once host requirements are clearer.
-5. Keep the `rmcp` feature surface tight; add new transports only behind a feature and a documented use case.
+1. Design an MCP result governor: bounded inline result, cached large result, page/search/schema/release follow-up tools, and explicit truncation reasons.
+2. Exercise the same dispatch and trace assertions for local tools, loopback tools, and stdio tools.
+3. Add timeout, heartbeat, and background-job shapes for long-running MCP tools once host requirements are clearer.
+4. Keep the `rmcp` feature surface tight; add new transports only behind a feature and a documented use case.
 
 ## Maturity Bar
 

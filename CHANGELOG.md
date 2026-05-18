@@ -22,6 +22,12 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
   unknown tools, missing arguments, wrong argument types, malformed child
   output, and child exit before handshake.
 
+### Deprecated
+
+- `McpTool::new` is deprecated in favour of [`McpTool::from_transport`],
+  which is the only constructor exercised by callers. The associated
+  function will be removed in the next major release.
+
 ## [0.1.3](https://github.com/ForeverAngry/rig-mcp/compare/v0.1.2...v0.1.3) - 2026-05-07
 
 ### Documentation

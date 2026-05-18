@@ -45,6 +45,15 @@ pub struct McpTool {
 }
 
 impl McpTool {
+    /// Construct an `McpTool` directly from a transport and a pre-fetched schema.
+    ///
+    /// In practice every caller wants the full discover-and-wrap flow,
+    /// so prefer [`McpTool::from_transport`]. This constructor is kept for
+    /// API compatibility and may be removed in a future major release.
+    #[deprecated(
+        since = "0.1.4",
+        note = "use `McpTool::from_transport` to discover and wrap remote tools"
+    )]
     pub fn new(transport: Arc<dyn McpTransport>, schema: ToolSchema) -> Self {
         Self { transport, schema }
     }
@@ -102,6 +111,10 @@ pub struct LoopbackTransport {
 }
 
 impl LoopbackTransport {
+    /// Wrap a local [`ToolRegistry`] as an in-process MCP-like transport.
+    ///
+    /// `endpoint` is an opaque label surfaced via [`McpTransport::endpoint`];
+    /// it has no protocol meaning for the loopback path.
     pub fn new(endpoint: impl Into<String>, registry: ToolRegistry) -> Self {
         Self {
             endpoint: endpoint.into(),

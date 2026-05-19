@@ -16,6 +16,37 @@ fn fixture_registry() -> ToolRegistry {
     let registry = ToolRegistry::new();
     registry.register(Arc::new(LocalTool::new(
         ToolSchema {
+            name: "weather.lookup".into(),
+            description: "looks up weather for a city".into(),
+            args_schema: json!({
+                "type": "object",
+                "required": ["city"],
+                "properties": {
+                    "city": {"type": "string"}
+                }
+            }),
+            result_schema: json!({
+                "type": "object",
+                "properties": {
+                    "city": {"type": "string"},
+                    "forecast": {"type": "string"},
+                    "transport": {"type": "string"}
+                }
+            }),
+        },
+        |args| async move {
+            let city = args.get("city").and_then(Value::as_str).ok_or_else(|| {
+                KernelError::InvalidArgument("weather.lookup requires city".into())
+            })?;
+            Ok(json!({
+                "city": city,
+                "forecast": "clear and cool",
+                "transport": "stdio-mcp"
+            }))
+        },
+    )));
+    registry.register(Arc::new(LocalTool::new(
+        ToolSchema {
             name: "math.checked_add".into(),
             description: "add two integers with argument validation".into(),
             args_schema: json!({

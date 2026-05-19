@@ -57,13 +57,11 @@ This preserves the same call shape across local tools, `LoopbackTransport`, `Std
 
 The loopback path is covered by tests in [src/transport.rs](src/transport.rs). This example mirrors `mcp_tool_indistinguishable_from_local`.
 
-[tests/harness.rs](tests/harness.rs) also exercises the loopback path as a
-deterministic harness run. It records task input, endpoint, discovered MCP tool
-names, normalized invocation, MCP-adapted dispatch result, final answer, and
-passed assertions. Together with the `rig-compose` and `rig-memvid` harness
-prototypes, this proves the run-record vocabulary works for local tools,
-memory-aware behavior, and MCP-backed tools before a dedicated harness crate is
-introduced.
+[tests/harness.rs](tests/harness.rs) exercises the same weather task through a
+local `ToolRegistry`, a `LoopbackTransport`, and a real child-process
+`StdioTransport`. It records task input, endpoint, discovered tool names,
+normalized invocation, dispatch result, final answer, and passed assertions so
+local and MCP-backed tools stay indistinguishable to registry callers.
 
 ```rust,no_run
 use std::sync::Arc;
@@ -104,6 +102,10 @@ assert_eq!(output, json!(42));
 Production stdio behavior is implemented in [src/stdio.rs](src/stdio.rs). `serve_stdio` exposes a local `ToolRegistry`; `StdioTransport::spawn` starts a child process and speaks MCP over its stdio.
 
 [tests/stdio_failures.rs](tests/stdio_failures.rs) exercises a real child-process fixture for successful stdio calls, unknown tools, missing arguments, wrong argument types, malformed child output, and child exit before handshake.
+[tests/result_envelope.rs](tests/result_envelope.rs) verifies that oversized
+stdio tool results round-trip as raw structured MCP output and can then be
+bounded with `rig_compose::bound_tool_result`, producing deterministic
+truncation metadata without adding per-transport clamping.
 
 ## Validation
 
@@ -117,6 +119,7 @@ That recipe runs formatter checks, `cargo clippy --all-targets --all-features --
 - The `rmcp` feature surface is intentionally tight. Do not enable extra transports or HTTP/TLS by default without a concrete need.
 - `StdioTransport` caches the cloneable `rmcp::Peer` and keeps the running service alive with an `Arc<RunningService<...>>`; dropping the transport drops the service and closes the child stdio.
 - `StdioTransport::call_tool` accepts object or null arguments. Other JSON shapes return `KernelError::InvalidArgument`.
+- MCP transports preserve structured tool output. Apply `rig_compose::bound_tool_result` at the dispatch/model-boundary layer when large results need deterministic truncation metadata.
 
 ## Ecosystem
 

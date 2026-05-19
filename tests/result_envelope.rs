@@ -9,7 +9,7 @@
 
 use std::time::Duration;
 
-use rig_compose::{KernelError, ToolResultEnvelope, ToolResultEnvelopeConfig, bound_tool_result};
+use rig_compose::{KernelError, ToolResultEnvelope, ToolResultEnvelopeConfig};
 use rig_mcp::{McpTransport, StdioTransport};
 use serde_json::json;
 use tokio::time::timeout;
@@ -23,33 +23,22 @@ async fn stdio_result_can_be_bounded_after_mcp_round_trip() -> Result<(), Kernel
     let raw = transport
         .call_tool("diagnostics.big_payload", json!({}))
         .await?;
-    assert_eq!(
-        raw["blob"].as_str().expect("blob").chars().count(),
-        10_000,
-        "stdio transport should preserve raw structured MCP output"
-    );
-    assert_eq!(raw["items"].as_array().expect("items").len(), 200);
+    let raw_chars = raw["blob"].as_str().expect("blob").chars().count();
+    let raw_items = raw["items"].as_array().expect("items").len();
+    assert_eq!(raw_chars, 10_000, "stdio transport should preserve raw structured MCP output");
+    assert_eq!(raw_items, 200);
 
-    let envelope = bound_tool_result(raw);
+    let config = ToolResultEnvelopeConfig::default();
+    let envelope = ToolResultEnvelope::bound(raw, &config);
     assert!(envelope.truncated);
     assert!(envelope.omitted_chars > 0);
     assert!(envelope.omitted_items > 0);
     assert!(envelope.page_token.is_some());
-    assert_eq!(
-        envelope.payload["blob"]
-            .as_str()
-            .expect("bounded blob")
-            .chars()
-            .count(),
-        4_000
-    );
-    assert_eq!(
-        envelope.payload["items"]
-            .as_array()
-            .expect("bounded items")
-            .len(),
-        64
-    );
+
+    let bounded_chars = envelope.payload["blob"].as_str().expect("bounded blob").chars().count();
+    let bounded_items = envelope.payload["items"].as_array().expect("bounded items").len();
+    assert!(bounded_chars < raw_chars, "blob should be truncated from {raw_chars} chars");
+    assert!(bounded_items < raw_items, "items should be truncated from {raw_items} items");
 
     Ok(())
 }

@@ -162,7 +162,7 @@ struct HarnessDispatchResult {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-struct McpLoopbackHarnessRun {
+struct TransportHarnessRun {
     path: String,
     task: String,
     endpoint: String,
@@ -181,7 +181,7 @@ async fn run_transport_harness(
     task: &str,
     first_model_output: &str,
     normalized_invocation: HarnessInvocation,
-) -> Result<McpLoopbackHarnessRun, KernelError> {
+) -> Result<TransportHarnessRun, KernelError> {
     let (endpoint, discovered_tool_names) = if let Some(transport) = transport {
         let endpoint = transport.endpoint().to_string();
         let discovered_tool_names = transport
@@ -212,14 +212,14 @@ async fn run_transport_harness(
         output,
     };
     let final_answer = fake_second_model_turn(&dispatch_result);
-    let passed_assertions = mcp_harness_assertions(
+    let passed_assertions = harness_assertions(
         &discovered_tool_names,
         &normalized_invocation,
         &dispatch_result,
         &final_answer,
     );
 
-    Ok(McpLoopbackHarnessRun {
+    Ok(TransportHarnessRun {
         path: path.to_string(),
         task: task.to_string(),
         endpoint,
@@ -246,7 +246,7 @@ fn fake_second_model_turn(result: &HarnessDispatchResult) -> String {
     format!("The weather in {city} is {forecast}.")
 }
 
-fn mcp_harness_assertions(
+fn harness_assertions(
     discovered_tool_names: &[String],
     normalized_invocation: &HarnessInvocation,
     dispatch_result: &HarnessDispatchResult,
@@ -292,7 +292,9 @@ fn weather_tool(transport: &'static str) -> Arc<LocalTool> {
             let city = args
                 .get("city")
                 .and_then(Value::as_str)
-                .unwrap_or("unknown");
+                .ok_or_else(|| {
+                    KernelError::InvalidArgument("weather.lookup requires city".into())
+                })?;
             Ok(json!({
                 "city": city,
                 "forecast": "clear and cool",

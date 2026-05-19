@@ -21,6 +21,12 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 - Add deterministic stdio fixtures covering successful child-process calls,
   unknown tools, missing arguments, wrong argument types, malformed child
   output, and child exit before handshake.
+- Add stdio result-envelope coverage for oversized MCP outputs. The test proves
+  `StdioTransport` preserves raw structured output and callers can use
+  `rig_compose::bound_tool_result` for deterministic truncation metadata.
+- Extend the deterministic harness to exercise the same tool task through local
+  `ToolRegistry`, `LoopbackTransport`, and real child-process `StdioTransport`
+  paths.
 
 ### Deprecated
 

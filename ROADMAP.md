@@ -18,17 +18,29 @@ This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate co
 - Stdio fixture coverage for discovery, tool calls, invalid args, child exit,
   malformed responses, and service teardown
   ([tests/stdio_failures.rs](tests/stdio_failures.rs)).
+- Result-envelope coverage for oversized stdio payloads: MCP transports
+    preserve structured results, and callers can apply
+    `rig_compose::bound_tool_result` for deterministic truncation metadata
+    ([tests/result_envelope.rs](tests/result_envelope.rs)).
+- Shared local / loopback / stdio harness coverage for the same tool task,
+    proving registry callers get equivalent dispatch semantics across paths
+    ([tests/harness.rs](tests/harness.rs)).
 
 ## Prototype Grade
 
-- Tool results can be large or tabular, but there is no result governor, cached paging, or projection API yet.
+- Tool-result bounding is validated for stdio outputs via the shared
+    `rig-compose` envelope. Cached paging, result search, schema projection,
+    and release lifecycle are not designed yet.
 - Transport tracing exists mostly through tests/logs, not a shared cross-crate trace envelope.
 - No alternate production transports are exposed; this is intentional until a concrete need appears.
 
 ## Next Work
 
-1. Design an MCP result governor: bounded inline result, cached large result, page/search/schema/release follow-up tools, and explicit truncation reasons.
-2. Exercise the same dispatch and trace assertions for local tools, loopback tools, and stdio tools.
+1. Design the next result-governor layer beyond `ToolResultEnvelope`: cached
+     large results, page/search/schema/release follow-up tools, and explicit
+     release lifecycle.
+2. Add structured `tracing` spans around spawn/list/call/server dispatch so
+     host apps can capture MCP lifecycle without a hard dependency on `rig-tap`.
 3. Add timeout, heartbeat, and background-job shapes for long-running MCP tools once host requirements are clearer.
 4. Keep the `rmcp` feature surface tight; add new transports only behind a feature and a documented use case.
 

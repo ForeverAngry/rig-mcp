@@ -11,6 +11,17 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `result_cache` module: transport-neutral cache for paged large tool
+  results. Public surface: `ResultCache` trait, `MemoryResultCache`
+  in-memory impl, `CachedResultHandle` / `CachedResultEnvelope` JSON
+  types, and a `cache_if_large` helper that envelopes oversized arrays
+  with a handle, total item count, page size, and a deterministic first
+  page. Wires the foundation for the page/search/release follow-up tools
+  called out in ROADMAP "Next Work" item 1; transport-level integration
+  remains a separate downstream change.
+
 ## [0.1.4](https://github.com/ForeverAngry/rig-mcp/compare/v0.1.3...v0.1.4) - 2026-05-19
 
 ### Added
@@ -23,10 +34,10 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 - Normalize quick start section
 - Rename coordination references to rig-ecosystem
-- Align ecosystem docs with rig-compose 0.3, rig-core 0.37, and rig-model-meta 0.1 ([#11](https://github.com/ForeverAngry/rig-mcp/pull/11))
-- Update ecosystem topology with rig-compose 0.3 and rig-model-meta ([#10](https://github.com/ForeverAngry/rig-mcp/pull/10))
-- Update ecosystem topology with rig-compose 0.3 and rig-model-meta ([#9](https://github.com/ForeverAngry/rig-mcp/pull/9))
-- Update ecosystem topology with rig-compose 0.3 and rig-model-meta ([#8](https://github.com/ForeverAngry/rig-mcp/pull/8))
+- Align ecosystem docs with rig-compose 0.3, rig-core 0.37, and rig-model-catalog 0.1 ([#11](https://github.com/ForeverAngry/rig-mcp/pull/11))
+- Update ecosystem topology with rig-compose 0.3 and rig-model-catalog ([#10](https://github.com/ForeverAngry/rig-mcp/pull/10))
+- Update ecosystem topology with rig-compose 0.3 and rig-model-catalog ([#9](https://github.com/ForeverAngry/rig-mcp/pull/9))
+- Update ecosystem topology with rig-compose 0.3 and rig-model-catalog ([#8](https://github.com/ForeverAngry/rig-mcp/pull/8))
 - Add mcp roadmap
 
 ### Added

@@ -22,10 +22,10 @@ It delegates JSON-RPC framing, capability handshakes, and protocol-version negot
 
 ## Status
 
-- Crate version: `0.1.3`.
+- Crate version: `0.1.4`.
 - Rust edition: 2024.
 - MSRV: 1.88.
-- `rig-compose` dependency: `version = "0.3"`.
+- `rig-compose` dependency: `version = "0.4"`.
 - `rmcp` dependency: `1.6` with `client`, `server`, `macros`, `transport-io`, and `transport-child-process` features only.
 - Current Unreleased work stores the cloneable `rmcp` peer directly in `StdioTransport`, eliminating a transport-level `tokio::sync::Mutex` around concurrent RPCs, and adds deterministic stdio failure fixtures.
 
@@ -123,20 +123,20 @@ That recipe runs formatter checks, `cargo clippy --all-targets --all-features --
 
 ## Ecosystem
 
-These companion crates are maintained as separate repositories. Together they form a small stack around the upstream Rig project: `rig-compose` provides the kernel surface, `rig-resources` contributes reusable skills and tools, `rig-mcp` moves tools across MCP, `rig-memvid` connects Rig agents to persistent `.mv2` memory, and `rig-model-meta` abstracts LLM metadata and probes.
+These companion crates are maintained as separate repositories. Together they form a small stack around the upstream Rig project: `rig-compose` provides the kernel surface, `rig-resources` contributes reusable skills and tools, `rig-mcp` moves tools across MCP, `rig-memvid` connects Rig agents to persistent `.mv2` memory, and `rig-model-catalog` abstracts LLM metadata and probes.
 
 ```mermaid
 flowchart TD
     rig["rig / rig-core"]
-    compose["rig-compose 0.3.x"]
+    compose["rig-compose 0.4.x"]
     resources["rig-resources 0.1.x"]
     mcp["rig-mcp 0.1.x"]
     memvid["rig-memvid 0.1.x"]
-    model_meta["rig-model-meta 0.1.x"]
+    model_meta["rig-model-catalog 0.1.x"]
 
     compose -. "Rig-shaped kernel; no direct rig-core dep" .-> rig
-    resources -- "rig-compose = 0.3; features: security, graph, full" --> compose
-    mcp -- "rig-compose = 0.3; rmcp stdio bridge" --> compose
+    resources -- "rig-compose = 0.4; features: security, graph, full" --> compose
+    mcp -- "rig-compose = 0.4; rmcp stdio bridge" --> compose
     memvid -- "rig-core = 0.37.0; features: lex, simd, vec, api_embed, temporal, encryption, compaction, context-projection" --> rig
     model_meta -. "optional rig-core = 0.37 via rig-hook" .-> rig
 ```
@@ -146,10 +146,10 @@ Pinned Rig-facing dependencies from the current manifests:
 | Crate | Direct Rig-facing dependency | Notes |
 | --- | --- | --- |
 | `rig-compose` | none | Defines a Rig-shaped kernel surface without depending on `rig-core`. |
-| `rig-resources` | `rig-compose = 0.3` | Provides reusable skills, resource tools, and security helpers. |
-| `rig-mcp` | `rig-compose = 0.3` | Bridges `rig-compose` tools over MCP stdio and loopback transports. |
-| `rig-memvid` | `rig-core = 0.37.0`; optional `rig-compose = 0.3` | Implements Rig vector-store, prompt-hook, compaction, and context-projection flows over Memvid. |
-| `rig-model-meta` | optional `rig-core = 0.37` via `rig-hook` | Provides standalone model traits plus optional Rig prompt-hook telemetry. |
+| `rig-resources` | `rig-compose = 0.4` | Provides reusable skills, resource tools, and security helpers. |
+| `rig-mcp` | `rig-compose = 0.4` | Bridges `rig-compose` tools over MCP stdio and loopback transports. |
+| `rig-memvid` | `rig-core = 0.37.0`; optional `rig-compose = 0.4` | Implements Rig vector-store, prompt-hook, compaction, and context-projection flows over Memvid. |
+| `rig-model-catalog` | optional `rig-core = 0.37` via `rig-hook` | Provides standalone model traits plus optional Rig prompt-hook telemetry. |
 
 The concrete multi-crate workflow tested today is the MCP loopback path: a `rig_compose::ToolRegistry` is exposed through `rig_mcp::LoopbackTransport`, remote schemas are wrapped as `rig_mcp::McpTool`, and the wrapped tools are registered back into another `ToolRegistry`. That proves a local `rig-compose` tool and an MCP-adapted tool are indistinguishable to callers. The backing test is `mcp_tool_indistinguishable_from_local` in [rig-mcp/src/transport.rs](https://github.com/ForeverAngry/rig-mcp/blob/main/src/transport.rs).
 

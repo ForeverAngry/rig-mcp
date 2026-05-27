@@ -11,6 +11,14 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Extend `CachedResultEnvelope` with `truncated`, `omitted_items`, and
+  `page_token` metadata so MCP cached array previews align with
+  `rig-compose` result-envelope semantics while preserving page handles.
+- Add `RegistrationSnapshot` and `RegistrationReplayPolicy` for deterministic,
+  adapter-local replay of discovered MCP tool registrations after reconnects.
+
 ## [0.1.5](https://github.com/ForeverAngry/rig-mcp/compare/v0.1.4...v0.1.5) - 2026-05-27
 
 ### Added

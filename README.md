@@ -42,6 +42,10 @@ coordination lives in
 - [src/transport.rs](src/transport.rs): `McpTransport`, the async trait for MCP-like transports. It exposes `endpoint`, `list_tools`, and `call_tool`.
 - [src/transport.rs](src/transport.rs): `McpTool`, the adapter that wraps one remote schema and transport as a local `rig_compose::Tool`.
 - [src/transport.rs](src/transport.rs): `LoopbackTransport`, an in-process transport over `ToolRegistry` used for tests and embedding.
+- [src/replay.rs](src/replay.rs): `RegistrationSnapshot`, an adapter-local
+    snapshot of discovered remote tool schemas that can replay `McpTool`
+    registration after reconnects without pushing transport state into
+    `rig-compose`.
 - [src/stdio.rs](src/stdio.rs): `StdioTransport`, the production child-process stdio MCP client backed by `rmcp`.
 - [src/stdio.rs](src/stdio.rs): `serve_stdio`, which exposes a `ToolRegistry` as an MCP tools-only server over the current process's stdin/stdout.
 
@@ -106,6 +110,10 @@ Production stdio behavior is implemented in [src/stdio.rs](src/stdio.rs). `serve
 stdio tool results round-trip as raw structured MCP output and can then be
 bounded with `rig_compose::bound_tool_result`, producing deterministic
 truncation metadata without adding per-transport clamping.
+The `result_cache` module uses the same model-boundary vocabulary for cached
+array pages: `CachedResultEnvelope` includes `truncated`, `omitted_items`, and
+`page_token` metadata next to the cache handle, total item count, page size,
+and first page preview.
 
 ## Validation
 
@@ -119,7 +127,10 @@ That recipe runs formatter checks, `cargo clippy --all-targets --all-features --
 - The `rmcp` feature surface is intentionally tight. Do not enable extra transports or HTTP/TLS by default without a concrete need.
 - `StdioTransport` caches the cloneable `rmcp::Peer` and keeps the running service alive with an `Arc<RunningService<...>>`; dropping the transport drops the service and closes the child stdio.
 - `StdioTransport::call_tool` accepts object or null arguments. Other JSON shapes return `KernelError::InvalidArgument`.
-- MCP transports preserve structured tool output. Apply `rig_compose::bound_tool_result` at the dispatch/model-boundary layer when large results need deterministic truncation metadata.
+- MCP transports preserve structured tool output. Apply `rig_compose::bound_tool_result` at the dispatch/model-boundary layer when large object/string results need deterministic truncation metadata; use `result_cache::cache_if_large` when oversized array results should remain page-addressable by handle.
+- Reconnect replay is adapter-owned. Use `RegistrationSnapshot::discover` and
+    `RegistrationSnapshot::replay_into` for transports that can reconnect;
+    do not store replay state in `ToolRegistry`.
 
 ## Ecosystem
 

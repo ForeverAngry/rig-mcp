@@ -21,10 +21,12 @@
     )
 )]
 
+pub mod replay;
 pub mod result_cache;
 pub mod stdio;
 pub mod transport;
 
+pub use replay::{RegistrationReplayPolicy, RegistrationSnapshot};
 pub use result_cache::{
     CachedResultEnvelope, CachedResultHandle, MemoryResultCache, ResultCache, cache_if_large,
 };

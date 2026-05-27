@@ -45,6 +45,10 @@ pub struct McpTool {
 }
 
 impl McpTool {
+    pub(crate) fn from_schema(transport: Arc<dyn McpTransport>, schema: ToolSchema) -> Self {
+        Self { transport, schema }
+    }
+
     /// Construct an `McpTool` directly from a transport and a pre-fetched schema.
     ///
     /// In practice every caller wants the full discover-and-wrap flow,
@@ -69,10 +73,7 @@ impl McpTool {
         Ok(schemas
             .into_iter()
             .map(|schema| {
-                let t: Arc<dyn Tool> = Arc::new(McpTool {
-                    transport: transport.clone(),
-                    schema,
-                });
+                let t: Arc<dyn Tool> = Arc::new(McpTool::from_schema(transport.clone(), schema));
                 t
             })
             .collect())

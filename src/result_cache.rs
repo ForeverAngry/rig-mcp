@@ -54,7 +54,10 @@ pub struct CachedResultHandle(pub String);
 /// The model sees `first_page` directly and can request later pages by
 /// calling a host-supplied page tool with `handle` and an offset. The
 /// envelope is deliberately small and self-describing so the model can
-/// reason about how much data is hidden behind the handle.
+/// reason about how much data is hidden behind the handle. The truncation
+/// fields mirror `rig_compose::ToolResultEnvelope` semantics for MCP result
+/// caches: the cache does not discard data, but the model-visible page is
+/// bounded and carries enough metadata for a follow-up page request.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CachedResultEnvelope {
     /// Opaque handle for the full cached result.
@@ -66,6 +69,20 @@ pub struct CachedResultEnvelope {
     /// First `page_size.min(total_items)` items, inlined so the model
     /// doesn't always have to do a follow-up call.
     pub first_page: Vec<Value>,
+    /// Whether the model-visible page omitted cached items.
+    pub truncated: bool,
+    /// Number of cached items omitted from `first_page`.
+    pub omitted_items: usize,
+    /// Stable follow-up token for the first omitted page.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub page_token: Option<String>,
+}
+
+impl CachedResultEnvelope {
+    /// Build the follow-up page token for `handle` and the next offset.
+    pub fn page_token(handle: &CachedResultHandle, offset: usize) -> String {
+        format!("{}:offset:{offset}", handle.0)
+    }
 }
 
 /// Transport-neutral cache for paged tool results.
@@ -195,11 +212,16 @@ pub fn cache_if_large(
         .map(<[Value]>::to_vec)
         .unwrap_or_default();
     let handle = cache.store(arr);
+    let omitted_items = total_items.saturating_sub(first_page_len);
     let envelope = CachedResultEnvelope {
+        page_token: (omitted_items > 0)
+            .then(|| CachedResultEnvelope::page_token(&handle, first_page_len)),
         handle,
         total_items,
         page_size,
         first_page,
+        truncated: omitted_items > 0,
+        omitted_items,
     };
     serde_json::to_value(envelope).unwrap_or(Value::Null)
 }
@@ -292,10 +314,26 @@ mod tests {
         assert_eq!(env.first_page.len(), 5);
         assert_eq!(env.first_page[0], json!({"id": 0}));
         assert_eq!(env.first_page[4], json!({"id": 4}));
+        assert!(env.truncated);
+        assert_eq!(env.omitted_items, 45);
+        assert_eq!(env.page_token.as_deref(), Some("mcp-cache-0:offset:5"));
         // The handle is live and the full vec is paged through the cache.
         assert_eq!(cache.len(&env.handle), Some(50));
         let page2 = cache.page(&env.handle, 5, 5).unwrap();
         assert_eq!(page2.len(), 5);
         assert_eq!(page2[0], json!({"id": 5}));
+    }
+
+    #[test]
+    fn cache_if_large_marks_empty_preview_as_truncated() {
+        let cache = MemoryResultCache::new();
+        let items: Vec<Value> = (0..3).map(|i| json!({"id": i})).collect();
+        let out = cache_if_large(Value::Array(items), &cache, 1, 0);
+        let env: CachedResultEnvelope = serde_json::from_value(out).unwrap();
+
+        assert!(env.first_page.is_empty());
+        assert!(env.truncated);
+        assert_eq!(env.omitted_items, 3);
+        assert_eq!(env.page_token.as_deref(), Some("mcp-cache-0:offset:0"));
     }
 }

@@ -31,6 +31,10 @@ This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate co
     `cache_if_large` helper for swapping oversized arrays for an
     enveloped handle + deterministic first page
     ([src/result_cache.rs](src/result_cache.rs)).
+- `RegistrationSnapshot` and `RegistrationReplayPolicy` for adapter-local
+    reconnect replay of discovered remote tool schemas without adding replay
+    state to `rig-compose::ToolRegistry`
+    ([src/replay.rs](src/replay.rs)).
 
 ## Prototype Grade
 
@@ -38,6 +42,9 @@ This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate co
     `rig-compose` envelope. Cached-paging primitives exist; transport-level
     auto-wiring, result search, schema projection, and explicit release
     lifecycle tools are not designed yet.
+- Registration replay snapshots are deterministic and idempotent at registry
+    level. Transport-specific reconnect loops, heartbeat policies, and
+    in-flight call recovery are still host/adapter concerns.
 - Transport tracing exists mostly through tests/logs, not a shared cross-crate trace envelope.
 - No alternate production transports are exposed; this is intentional until a concrete need appears.
 
@@ -49,7 +56,8 @@ This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate co
      release-lifecycle policy.
 2. Add structured `tracing` spans around spawn/list/call/server dispatch so
      host apps can capture MCP lifecycle without a hard dependency on `rig-tap`.
-3. Add timeout, heartbeat, and background-job shapes for long-running MCP tools once host requirements are clearer.
+3. Add timeout, heartbeat, in-flight call recovery, and background-job shapes
+    for long-running MCP tools once host requirements are clearer.
 4. Keep the `rmcp` feature surface tight; add new transports only behind a feature and a documented use case.
 
 ## Maturity Bar

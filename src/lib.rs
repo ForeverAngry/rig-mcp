@@ -21,8 +21,12 @@
     )
 )]
 
+pub mod result_cache;
 pub mod stdio;
 pub mod transport;
 
+pub use result_cache::{
+    CachedResultEnvelope, CachedResultHandle, MemoryResultCache, ResultCache, cache_if_large,
+};
 pub use stdio::{StdioTransport, serve_stdio};
 pub use transport::{LoopbackTransport, McpTool, McpTransport};

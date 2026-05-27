@@ -25,20 +25,28 @@ This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate co
 - Shared local / loopback / stdio harness coverage for the same tool task,
     proving registry callers get equivalent dispatch semantics across paths
     ([tests/harness.rs](tests/harness.rs)).
+- `result_cache` module providing the cached-paging primitives:
+    `ResultCache` trait, `MemoryResultCache` in-memory store, opaque
+    `CachedResultHandle`, `CachedResultEnvelope` JSON shape, and
+    `cache_if_large` helper for swapping oversized arrays for an
+    enveloped handle + deterministic first page
+    ([src/result_cache.rs](src/result_cache.rs)).
 
 ## Prototype Grade
 
 - Tool-result bounding is validated for stdio outputs via the shared
-    `rig-compose` envelope. Cached paging, result search, schema projection,
-    and release lifecycle are not designed yet.
+    `rig-compose` envelope. Cached-paging primitives exist; transport-level
+    auto-wiring, result search, schema projection, and explicit release
+    lifecycle tools are not designed yet.
 - Transport tracing exists mostly through tests/logs, not a shared cross-crate trace envelope.
 - No alternate production transports are exposed; this is intentional until a concrete need appears.
 
 ## Next Work
 
-1. Design the next result-governor layer beyond `ToolResultEnvelope`: cached
-     large results, page/search/schema/release follow-up tools, and explicit
-     release lifecycle.
+1. Build on `result_cache`: optional transport wrapper that auto-envelopes
+     oversized array results, plus page/search/schema/release follow-up
+     tools registered as `rig_compose::Tool` values, and an explicit
+     release-lifecycle policy.
 2. Add structured `tracing` spans around spawn/list/call/server dispatch so
      host apps can capture MCP lifecycle without a hard dependency on `rig-tap`.
 3. Add timeout, heartbeat, and background-job shapes for long-running MCP tools once host requirements are clearer.

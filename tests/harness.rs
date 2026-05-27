@@ -289,12 +289,9 @@ fn weather_tool(transport: &'static str) -> Arc<LocalTool> {
             result_schema: json!({"type": "object"}),
         },
         move |args| async move {
-            let city = args
-                .get("city")
-                .and_then(Value::as_str)
-                .ok_or_else(|| {
-                    KernelError::InvalidArgument("weather.lookup requires city".into())
-                })?;
+            let city = args.get("city").and_then(Value::as_str).ok_or_else(|| {
+                KernelError::InvalidArgument("weather.lookup requires city".into())
+            })?;
             Ok(json!({
                 "city": city,
                 "forecast": "clear and cool",

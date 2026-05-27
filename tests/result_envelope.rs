@@ -25,7 +25,10 @@ async fn stdio_result_can_be_bounded_after_mcp_round_trip() -> Result<(), Kernel
         .await?;
     let raw_chars = raw["blob"].as_str().expect("blob").chars().count();
     let raw_items = raw["items"].as_array().expect("items").len();
-    assert_eq!(raw_chars, 10_000, "stdio transport should preserve raw structured MCP output");
+    assert_eq!(
+        raw_chars, 10_000,
+        "stdio transport should preserve raw structured MCP output"
+    );
     assert_eq!(raw_items, 200);
 
     let config = ToolResultEnvelopeConfig::default();
@@ -35,10 +38,23 @@ async fn stdio_result_can_be_bounded_after_mcp_round_trip() -> Result<(), Kernel
     assert!(envelope.omitted_items > 0);
     assert!(envelope.page_token.is_some());
 
-    let bounded_chars = envelope.payload["blob"].as_str().expect("bounded blob").chars().count();
-    let bounded_items = envelope.payload["items"].as_array().expect("bounded items").len();
-    assert!(bounded_chars < raw_chars, "blob should be truncated from {raw_chars} chars");
-    assert!(bounded_items < raw_items, "items should be truncated from {raw_items} items");
+    let bounded_chars = envelope.payload["blob"]
+        .as_str()
+        .expect("bounded blob")
+        .chars()
+        .count();
+    let bounded_items = envelope.payload["items"]
+        .as_array()
+        .expect("bounded items")
+        .len();
+    assert!(
+        bounded_chars < raw_chars,
+        "blob should be truncated from {raw_chars} chars"
+    );
+    assert!(
+        bounded_items < raw_items,
+        "items should be truncated from {raw_items} items"
+    );
 
     Ok(())
 }

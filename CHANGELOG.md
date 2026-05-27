@@ -11,6 +11,12 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/ForeverAngry/rig-mcp/compare/v0.1.5...v0.2.0) - 2026-05-27
+
+### Added
+
+- Add cached result metadata and replay snapshots
+
 ### Added
 
 - Extend `CachedResultEnvelope` with `truncated`, `omitted_items`, and

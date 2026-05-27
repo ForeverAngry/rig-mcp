@@ -11,6 +11,16 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
+## [0.1.5](https://github.com/ForeverAngry/rig-mcp/compare/v0.1.4...v0.1.5) - 2026-05-27
+
+### Added
+
+- Add result cache primitives
+
+### Fixed
+
+- Make harness example self-contained
+
 ### Added
 
 - `result_cache` module: transport-neutral cache for paged large tool

@@ -1,4 +1,4 @@
-#[path = "../../rig-compose/examples/common/harness_record.rs"]
+#[path = "common/harness_record.rs"]
 mod harness_record;
 
 use harness_record::HarnessRun;

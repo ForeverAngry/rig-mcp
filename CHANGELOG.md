@@ -11,6 +11,12 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
+## [0.2.4](https://github.com/ForeverAngry/rig-mcp/compare/v0.2.3...v0.2.4) - 2026-05-28
+
+### Added
+
+- Gate StdioTransport behind default-on stdio feature ([#30](https://github.com/ForeverAngry/rig-mcp/pull/30))
+
 ## [0.2.3](https://github.com/ForeverAngry/rig-mcp/compare/v0.2.2...v0.2.3) - 2026-05-28
 
 ### Added

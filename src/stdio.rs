@@ -20,6 +20,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use serde_json::{Value, json};
 use tokio::process::Command;
+use tracing::{Instrument, field};
 
 use rmcp::model::{
     CallToolRequestParams, CallToolResult, Content, Implementation, ListToolsResult,
@@ -102,17 +103,29 @@ impl ServerHandler for RegistryServer {
         _request: Option<PaginatedRequestParams>,
         _context: RequestContext<RoleServer>,
     ) -> Result<ListToolsResult, McpError> {
-        let tools = self
-            .registry
-            .schemas()
-            .into_iter()
-            .map(schema_to_rmcp_tool)
-            .collect();
-        Ok(ListToolsResult {
-            tools,
-            next_cursor: None,
-            meta: None,
-        })
+        let span = tracing::info_span!(
+            "mcp.stdio_server.list_tools",
+            mcp.transport = "stdio_server",
+            mcp.tool_count = field::Empty,
+        );
+        let span_for_record = span.clone();
+
+        async move {
+            let tools: Vec<_> = self
+                .registry
+                .schemas()
+                .into_iter()
+                .map(schema_to_rmcp_tool)
+                .collect();
+            span_for_record.record("mcp.tool_count", tools.len() as u64);
+            Ok(ListToolsResult {
+                tools,
+                next_cursor: None,
+                meta: None,
+            })
+        }
+        .instrument(span)
+        .await
     }
 
     async fn call_tool(
@@ -121,30 +134,58 @@ impl ServerHandler for RegistryServer {
         _context: RequestContext<RoleServer>,
     ) -> Result<CallToolResult, McpError> {
         let name = request.name.to_string();
-        let args = request
-            .arguments
-            .map(Value::Object)
-            .unwrap_or_else(|| json!({}));
-        match self.registry.invoke(&name, args).await {
-            Ok(value) => Ok(CallToolResult::structured(value)),
-            Err(e) => Ok(CallToolResult::error(vec![Content::text(e.to_string())])),
+        let span = tracing::info_span!(
+            "mcp.stdio_server.call_tool",
+            mcp.transport = "stdio_server",
+            mcp.tool_name = %name,
+            mcp.error = field::Empty,
+        );
+        let span_for_record = span.clone();
+
+        async move {
+            let args = request
+                .arguments
+                .map(Value::Object)
+                .unwrap_or_else(|| json!({}));
+            match self.registry.invoke(&name, args).await {
+                Ok(value) => Ok(CallToolResult::structured(value)),
+                Err(e) => {
+                    span_for_record.record("mcp.error", e.to_string());
+                    Ok(CallToolResult::error(vec![Content::text(e.to_string())]))
+                }
+            }
         }
+        .instrument(span)
+        .await
     }
 }
 
 /// Serve `registry` over stdin/stdout using rmcp's spec-compliant stdio
 /// transport. Returns when the peer disconnects.
 pub async fn serve_stdio(registry: ToolRegistry) -> Result<(), KernelError> {
-    let server = RegistryServer::new(Arc::new(registry));
-    let service = server
-        .serve(rmcp_stdio())
-        .await
-        .map_err(|e| KernelError::ToolFailed(format!("mcp.serve: {e}")))?;
-    service
-        .waiting()
-        .await
-        .map_err(|e| KernelError::ToolFailed(format!("mcp.serve: {e}")))?;
-    Ok(())
+    let span = tracing::info_span!(
+        "mcp.stdio.serve",
+        mcp.transport = "stdio",
+        mcp.error = field::Empty,
+    );
+    let span_for_record = span.clone();
+
+    async move {
+        let server = RegistryServer::new(Arc::new(registry));
+        let service = server.serve(rmcp_stdio()).await.map_err(|e| {
+            let error = KernelError::ToolFailed(format!("mcp.serve: {e}"));
+            span_for_record.record("mcp.error", error.to_string());
+            error
+        })?;
+        service.waiting().await.map_err(|e| {
+            let error = KernelError::ToolFailed(format!("mcp.serve: {e}"));
+            span_for_record.record("mcp.error", error.to_string());
+            error
+        })?;
+        Ok(())
+    }
+    .instrument(span)
+    .await
 }
 
 // =============================================================================
@@ -177,23 +218,43 @@ impl StdioTransport {
         program: impl AsRef<std::ffi::OsStr>,
         args: &[&str],
     ) -> Result<Self, KernelError> {
+        let endpoint = endpoint.into();
         let program = program.as_ref().to_owned();
+        let program_name = program.to_string_lossy().to_string();
         let argv: Vec<String> = args.iter().map(|s| (*s).to_string()).collect();
-        let cmd = Command::new(&program).configure(|c| {
-            c.args(&argv);
-        });
-        let transport = TokioChildProcess::new(cmd)
-            .map_err(|e| KernelError::ToolFailed(format!("mcp.spawn: {e}")))?;
-        let service = ()
-            .serve(transport)
-            .await
-            .map_err(|e| KernelError::ToolFailed(format!("mcp.connect: {e}")))?;
-        let peer = service.peer().clone();
-        Ok(Self {
-            endpoint: endpoint.into(),
-            peer,
-            _service: Arc::new(service),
-        })
+        let span = tracing::info_span!(
+            "mcp.stdio.spawn",
+            mcp.transport = "stdio",
+            mcp.endpoint = %endpoint,
+            mcp.program = %program_name,
+            mcp.arg_count = argv.len() as u64,
+            mcp.error = field::Empty,
+        );
+        let span_for_record = span.clone();
+
+        async move {
+            let cmd = Command::new(&program).configure(|c| {
+                c.args(&argv);
+            });
+            let transport = TokioChildProcess::new(cmd).map_err(|e| {
+                let error = KernelError::ToolFailed(format!("mcp.spawn: {e}"));
+                span_for_record.record("mcp.error", error.to_string());
+                error
+            })?;
+            let service = ().serve(transport).await.map_err(|e| {
+                let error = KernelError::ToolFailed(format!("mcp.connect: {e}"));
+                span_for_record.record("mcp.error", error.to_string());
+                error
+            })?;
+            let peer = service.peer().clone();
+            Ok(Self {
+                endpoint,
+                peer,
+                _service: Arc::new(service),
+            })
+        }
+        .instrument(span)
+        .await
     }
 }
 
@@ -204,62 +265,93 @@ impl McpTransport for StdioTransport {
     }
 
     async fn list_tools(&self) -> Result<Vec<ToolSchema>, KernelError> {
-        let tools = self
-            .peer
-            .list_all_tools()
-            .await
-            .map_err(|e| KernelError::ToolFailed(format!("tools/list: {e}")))?;
-        Ok(tools.into_iter().map(rmcp_tool_to_schema).collect())
+        let span = tracing::info_span!(
+            "mcp.stdio.list_tools",
+            mcp.transport = "stdio",
+            mcp.endpoint = %self.endpoint,
+            mcp.tool_count = field::Empty,
+            mcp.error = field::Empty,
+        );
+        let span_for_record = span.clone();
+
+        async move {
+            let tools = self.peer.list_all_tools().await.map_err(|e| {
+                let error = KernelError::ToolFailed(format!("tools/list: {e}"));
+                span_for_record.record("mcp.error", error.to_string());
+                error
+            })?;
+            span_for_record.record("mcp.tool_count", tools.len() as u64);
+            Ok(tools.into_iter().map(rmcp_tool_to_schema).collect())
+        }
+        .instrument(span)
+        .await
     }
 
     async fn call_tool(&self, name: &str, args: Value) -> Result<Value, KernelError> {
-        let arguments = match args {
-            Value::Object(map) => Some(map),
-            Value::Null => None,
-            other => {
-                return Err(KernelError::InvalidArgument(format!(
-                    "tools/call requires an object or null arguments, got {other}"
-                )));
-            }
-        };
-        let params = {
-            #[allow(clippy::field_reassign_with_default)]
-            let mut p = CallToolRequestParams::default();
-            p.name = name.to_string().into();
-            p.arguments = arguments;
-            p
-        };
-        let result = self
-            .peer
-            .call_tool(params)
-            .await
-            .map_err(|e| KernelError::ToolFailed(format!("tools/call: {e}")))?;
+        let span = tracing::info_span!(
+            "mcp.stdio.call_tool",
+            mcp.transport = "stdio",
+            mcp.endpoint = %self.endpoint,
+            mcp.tool_name = %name,
+            mcp.error = field::Empty,
+        );
+        let span_for_record = span.clone();
 
-        if result.is_error.unwrap_or(false) {
-            let msg = result
+        async move {
+            let arguments = match args {
+                Value::Object(map) => Some(map),
+                Value::Null => None,
+                other => {
+                    let error = KernelError::InvalidArgument(format!(
+                        "tools/call requires an object or null arguments, got {other}"
+                    ));
+                    span_for_record.record("mcp.error", error.to_string());
+                    return Err(error);
+                }
+            };
+            let params = {
+                #[allow(clippy::field_reassign_with_default)]
+                let mut p = CallToolRequestParams::default();
+                p.name = name.to_string().into();
+                p.arguments = arguments;
+                p
+            };
+            let result = self.peer.call_tool(params).await.map_err(|e| {
+                let error = KernelError::ToolFailed(format!("tools/call: {e}"));
+                span_for_record.record("mcp.error", error.to_string());
+                error
+            })?;
+
+            if result.is_error.unwrap_or(false) {
+                let msg = result
+                    .content
+                    .iter()
+                    .find_map(|c| c.as_text().map(|t| t.text.clone()))
+                    .unwrap_or_else(|| "tool returned error".to_string());
+                let error = KernelError::ToolFailed(msg);
+                span_for_record.record("mcp.error", error.to_string());
+                return Err(error);
+            }
+
+            // Prefer typed structured content; fall back to first text block parsed
+            // as JSON, then to the raw text wrapped in a string Value.
+            if let Some(v) = result.structured_content {
+                return Ok(v);
+            }
+            if let Some(text) = result
                 .content
                 .iter()
                 .find_map(|c| c.as_text().map(|t| t.text.clone()))
-                .unwrap_or_else(|| "tool returned error".to_string());
-            return Err(KernelError::ToolFailed(msg));
-        }
-
-        // Prefer typed structured content; fall back to first text block parsed
-        // as JSON, then to the raw text wrapped in a string Value.
-        if let Some(v) = result.structured_content {
-            return Ok(v);
-        }
-        if let Some(text) = result
-            .content
-            .iter()
-            .find_map(|c| c.as_text().map(|t| t.text.clone()))
-        {
-            if let Ok(parsed) = serde_json::from_str::<Value>(&text) {
-                return Ok(parsed);
+            {
+                if let Ok(parsed) = serde_json::from_str::<Value>(&text) {
+                    return Ok(parsed);
+                }
+                return Ok(Value::String(text));
             }
-            return Ok(Value::String(text));
+            Ok(Value::Null)
         }
-        Ok(Value::Null)
+        .instrument(span)
+        .await
     }
 }
 

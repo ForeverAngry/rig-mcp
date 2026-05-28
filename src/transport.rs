@@ -14,6 +14,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use serde_json::Value;
+use tracing::{Instrument, field};
 
 use rig_compose::registry::{KernelError, ToolRegistry};
 use rig_compose::tool::{Tool, ToolSchema};
@@ -131,11 +132,42 @@ impl McpTransport for LoopbackTransport {
     }
 
     async fn list_tools(&self) -> Result<Vec<ToolSchema>, KernelError> {
-        Ok(self.registry.descriptors())
+        let span = tracing::info_span!(
+            "mcp.loopback.list_tools",
+            mcp.transport = "loopback",
+            mcp.endpoint = %self.endpoint,
+            mcp.tool_count = field::Empty,
+        );
+        let span_for_record = span.clone();
+
+        async move {
+            let tools = self.registry.descriptors();
+            span_for_record.record("mcp.tool_count", tools.len() as u64);
+            Ok(tools)
+        }
+        .instrument(span)
+        .await
     }
 
     async fn call_tool(&self, name: &str, args: Value) -> Result<Value, KernelError> {
-        self.registry.invoke(name, args).await
+        let span = tracing::info_span!(
+            "mcp.loopback.call_tool",
+            mcp.transport = "loopback",
+            mcp.endpoint = %self.endpoint,
+            mcp.tool_name = %name,
+            mcp.error = field::Empty,
+        );
+        let span_for_record = span.clone();
+
+        async move {
+            let result = self.registry.invoke(name, args).await;
+            if let Err(error) = &result {
+                span_for_record.record("mcp.error", error.to_string());
+            }
+            result
+        }
+        .instrument(span)
+        .await
     }
 }
 

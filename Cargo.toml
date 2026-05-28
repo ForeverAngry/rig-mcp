@@ -17,6 +17,7 @@ async-trait = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1.40", features = ["rt-multi-thread", "macros", "sync", "process", "io-util", "io-std", "time"] }
+tracing = "0.1"
 # Official Model Context Protocol SDK. We disable defaults and opt into
 # only the client + server + stdio transports we actually use; this
 # keeps the dependency surface tight (no HTTP/TLS pulled in).

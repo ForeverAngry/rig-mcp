@@ -11,6 +11,14 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Add structured `tracing` spans around MCP lifecycle operations without adding
+  a `rig-tap` dependency. Loopback and stdio list/call paths plus stdio spawn
+  and server dispatch now emit spans with `mcp.transport`, `mcp.endpoint`,
+  `mcp.tool_name`, `mcp.tool_count`, `mcp.program`, `mcp.arg_count`, and
+  `mcp.error` fields where applicable.
+
 ## [0.2.2](https://github.com/ForeverAngry/rig-mcp/compare/v0.2.1...v0.2.2) - 2026-05-28
 
 ### Added

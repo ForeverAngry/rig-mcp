@@ -23,6 +23,7 @@ fmt:
 # Clippy across release-relevant feature sets.
 clippy:
     cargo clippy --all-targets --all-features -- -D warnings
+    cargo clippy --no-default-features -- -D warnings
 
 # Tests across release-relevant feature sets.
 test:

@@ -22,14 +22,13 @@ It delegates JSON-RPC framing, capability handshakes, and protocol-version negot
 
 ## Status
 
-- Crate version: `0.2.1`.
+- Crate version: `0.2.3`.
 - Rust edition: 2024.
 - MSRV: 1.88.
 - `rig-compose` dependency: `version = "0.4.1"`.
-- `rmcp` dependency: `1.6` with `client`, `server`, `macros`, `transport-io`, and `transport-child-process` features only.
-- Current Unreleased work adds opt-in cached-result transport and page/release
-    tools for oversized MCP array results plus structured `tracing` spans for
-    MCP spawn/list/call/server lifecycle events.
+- `rmcp` dependency: `1.6` with `client`, `server`, and `macros` as the base
+  surface; the `stdio` feature additionally enables `transport-io` and
+  `transport-child-process`.
 
 The crate-local maturity plan lives in [ROADMAP.md](ROADMAP.md). Cross-crate
 coordination lives in
@@ -37,7 +36,19 @@ coordination lives in
 
 ## Feature Flags
 
-`rig-mcp` currently defines no crate features. `just check` runs clippy, tests, and docs with `--all-features` to keep future feature additions covered.
+`rig-mcp` exposes one Cargo feature, on by default:
+
+| Feature | Default | Description |
+| --- | :-: | --- |
+| `stdio` | yes | Production child-process stdio transport (`StdioTransport::spawn`, `serve_stdio`) backed by `rmcp`'s `transport-io` and `transport-child-process` features. Pulls `tokio`. |
+
+The runtime-agnostic surface — `McpTransport`, `LoopbackTransport`, `McpTool`,
+`CachedResultsTransport`, `RegistrationSnapshot`, and the `result_cache`
+primitives — stays available with `default-features = false`, so callers that
+embed `rig-mcp` without the stdio bridge do not pay for `tokio` directly.
+
+CI exercises both `--all-features` and `--no-default-features` to keep the
+runtime-agnostic guarantee honest.
 
 ## Key Types
 

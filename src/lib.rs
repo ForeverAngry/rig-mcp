@@ -24,6 +24,7 @@
 pub mod cache_tools;
 pub mod replay;
 pub mod result_cache;
+#[cfg(feature = "stdio")]
 pub mod stdio;
 pub mod transport;
 
@@ -35,5 +36,6 @@ pub use replay::{RegistrationReplayPolicy, RegistrationSnapshot};
 pub use result_cache::{
     CachedResultEnvelope, CachedResultHandle, MemoryResultCache, ResultCache, cache_if_large,
 };
+#[cfg(feature = "stdio")]
 pub use stdio::{StdioTransport, serve_stdio};
 pub use transport::{LoopbackTransport, McpTool, McpTransport};

@@ -11,6 +11,11 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Add `CachedResultsTransport`, `CachedResultsConfig`, and cache page/release
+  tools for opt-in model-boundary caching of oversized MCP array results.
+
 ## [0.2.1](https://github.com/ForeverAngry/rig-mcp/compare/v0.2.0...v0.2.1) - 2026-05-28
 
 ### Added

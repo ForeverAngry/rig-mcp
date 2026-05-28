@@ -31,6 +31,10 @@ This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate co
     `cache_if_large` helper for swapping oversized arrays for an
     enveloped handle + deterministic first page
     ([src/result_cache.rs](src/result_cache.rs)).
+- `CachedResultsTransport`, `CachedResultsConfig`, `cache.page`, and
+    `cache.release` tool builders for opt-in model-boundary caching of
+    oversized MCP array results while raw transports remain lossless
+    ([src/cache_tools.rs](src/cache_tools.rs)).
 - `RegistrationSnapshot` and `RegistrationReplayPolicy` for adapter-local
     reconnect replay of discovered remote tool schemas without adding replay
     state to `rig-compose::ToolRegistry`
@@ -42,9 +46,9 @@ This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate co
 ## Prototype Grade
 
 - Tool-result bounding is validated for stdio outputs via the shared
-    `rig-compose` envelope. Cached-paging primitives exist; transport-level
-    auto-wiring, result search, schema projection, and explicit release
-    lifecycle tools are not designed yet.
+    `rig-compose` envelope. Cached-paging primitives and opt-in transport
+    integration exist; result search and schema projection are still deferred
+    until host requirements are clearer.
 - Registration replay snapshots are deterministic, idempotent at registry
     level, and aligned with the published `rig-compose` descriptor surface.
     Transport-specific reconnect loops, heartbeat policies, and in-flight call
@@ -54,10 +58,8 @@ This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate co
 
 ## Next Work
 
-1. Build on `result_cache`: optional transport wrapper that auto-envelopes
-     oversized array results, plus page/search/schema/release follow-up
-     tools registered as `rig_compose::Tool` values, and an explicit
-     release-lifecycle policy.
+1. Build on `result_cache`: add result search and schema/projection helpers if
+    real hosts need more than page/release lifecycle tools.
 2. Add structured `tracing` spans around spawn/list/call/server dispatch so
      host apps can capture MCP lifecycle without a hard dependency on `rig-tap`.
 3. Add timeout, heartbeat, in-flight call recovery, and background-job shapes

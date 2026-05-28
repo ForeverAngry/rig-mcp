@@ -22,12 +22,13 @@ It delegates JSON-RPC framing, capability handshakes, and protocol-version negot
 
 ## Status
 
-- Crate version: `0.2.0`.
+- Crate version: `0.2.1`.
 - Rust edition: 2024.
 - MSRV: 1.88.
 - `rig-compose` dependency: `version = "0.4.1"`.
 - `rmcp` dependency: `1.6` with `client`, `server`, `macros`, `transport-io`, and `transport-child-process` features only.
-- Current Unreleased work stores the cloneable `rmcp` peer directly in `StdioTransport`, eliminating a transport-level `tokio::sync::Mutex` around concurrent RPCs, and adds deterministic stdio failure fixtures.
+- Current Unreleased work adds opt-in cached-result transport and page/release
+    tools for oversized MCP array results.
 
 The crate-local maturity plan lives in [ROADMAP.md](ROADMAP.md). Cross-crate
 coordination lives in
@@ -42,6 +43,9 @@ coordination lives in
 - [src/transport.rs](src/transport.rs): `McpTransport`, the async trait for MCP-like transports. It exposes `endpoint`, `list_tools`, and `call_tool`.
 - [src/transport.rs](src/transport.rs): `McpTool`, the adapter that wraps one remote schema and transport as a local `rig_compose::Tool`.
 - [src/transport.rs](src/transport.rs): `LoopbackTransport`, an in-process transport over `ToolRegistry` used for tests and embedding.
+- [src/cache_tools.rs](src/cache_tools.rs): `CachedResultsTransport`,
+    `CachedResultsConfig`, and `cache.page` / `cache.release` tool builders
+    for model-boundary paging of oversized array results.
 - [src/replay.rs](src/replay.rs): `RegistrationSnapshot`, an adapter-local
     snapshot of discovered remote tool descriptors that can replay `McpTool`
     registration after reconnects without pushing transport state into
@@ -114,6 +118,10 @@ The `result_cache` module uses the same model-boundary vocabulary for cached
 array pages: `CachedResultEnvelope` includes `truncated`, `omitted_items`, and
 `page_token` metadata next to the cache handle, total item count, page size,
 and first page preview.
+`CachedResultsTransport` wraps any `McpTransport` and applies that envelope
+only after a remote call returns an oversized array. Register `cache.page` and
+`cache.release` with `register_cache_tools` so the model can page through and
+release handles using normal `rig_compose::Tool` calls.
 
 ## Validation
 
@@ -127,7 +135,7 @@ That recipe runs formatter checks, `cargo clippy --all-targets --all-features --
 - The `rmcp` feature surface is intentionally tight. Do not enable extra transports or HTTP/TLS by default without a concrete need.
 - `StdioTransport` caches the cloneable `rmcp::Peer` and keeps the running service alive with an `Arc<RunningService<...>>`; dropping the transport drops the service and closes the child stdio.
 - `StdioTransport::call_tool` accepts object or null arguments. Other JSON shapes return `KernelError::InvalidArgument`.
-- MCP transports preserve structured tool output. Apply `rig_compose::bound_tool_result` at the dispatch/model-boundary layer when large object/string results need deterministic truncation metadata; use `result_cache::cache_if_large` when oversized array results should remain page-addressable by handle.
+- MCP transports preserve structured tool output. Apply `rig_compose::bound_tool_result` at the dispatch/model-boundary layer when large object/string results need deterministic truncation metadata; use `CachedResultsTransport` plus `register_cache_tools` when oversized array results should remain page-addressable by handle.
 - Reconnect replay is adapter-owned. Use `RegistrationSnapshot::discover`,
     `RegistrationSnapshot::from_registry`, and `RegistrationSnapshot::replay_into`
     for transports that can reconnect; do not store replay state in

@@ -11,6 +11,11 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Require `rig-compose` 0.4.1 and use `ToolRegistry::descriptors()` for
+  loopback discovery and registry-backed registration snapshots.
+
 ## [0.2.0](https://github.com/ForeverAngry/rig-mcp/compare/v0.1.5...v0.2.0) - 2026-05-27
 
 ### Added

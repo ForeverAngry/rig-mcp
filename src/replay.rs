@@ -61,6 +61,25 @@ impl RegistrationSnapshot {
         }
     }
 
+    /// Snapshot visible descriptors from a local `rig-compose` registry.
+    ///
+    /// This is useful for loopback and host-owned reconnect flows that already
+    /// have a registry view and want the same deterministic descriptor surface
+    /// used by MCP discovery.
+    pub fn from_registry(endpoint: impl Into<String>, registry: &ToolRegistry) -> Self {
+        Self::new(endpoint, registry.descriptors())
+    }
+
+    /// Snapshot visible descriptors from a local registry with an explicit
+    /// replay policy.
+    pub fn from_registry_with_policy(
+        endpoint: impl Into<String>,
+        registry: &ToolRegistry,
+        policy: RegistrationReplayPolicy,
+    ) -> Self {
+        Self::with_policy(endpoint, registry.descriptors(), policy)
+    }
+
     /// Discover schemas from `transport` and snapshot them.
     pub async fn discover(transport: &dyn McpTransport) -> Result<Self, KernelError> {
         let tools = transport.list_tools().await?;
@@ -143,6 +162,25 @@ mod tests {
 
         assert_eq!(snapshot.tool_names(), vec!["a.first", "z.last"]);
         assert_eq!(snapshot.tools[1].description, "second version");
+    }
+
+    #[test]
+    fn snapshot_from_registry_uses_visible_descriptors() {
+        let registry = registry();
+        let scoped = registry.scoped(["math.add"]);
+        let snapshot = RegistrationSnapshot::from_registry("loopback://registry", &scoped);
+
+        assert_eq!(snapshot.endpoint, "loopback://registry");
+        assert_eq!(snapshot.tool_names(), vec!["math.add"]);
+    }
+
+    #[test]
+    fn snapshot_from_registry_honours_scope() {
+        let registry = registry();
+        let scoped = registry.scoped(["missing.tool"]);
+        let snapshot = RegistrationSnapshot::from_registry("loopback://empty", &scoped);
+
+        assert!(snapshot.tools.is_empty());
     }
 
     #[tokio::test]

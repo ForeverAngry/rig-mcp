@@ -35,6 +35,9 @@ This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate co
     reconnect replay of discovered remote tool schemas without adding replay
     state to `rig-compose::ToolRegistry`
     ([src/replay.rs](src/replay.rs)).
+- Descriptor parity with `rig-compose` 0.4.1: loopback discovery and
+    registry-backed snapshots use `ToolRegistry::descriptors()` instead of
+    depending on registry storage details.
 
 ## Prototype Grade
 
@@ -42,9 +45,10 @@ This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate co
     `rig-compose` envelope. Cached-paging primitives exist; transport-level
     auto-wiring, result search, schema projection, and explicit release
     lifecycle tools are not designed yet.
-- Registration replay snapshots are deterministic and idempotent at registry
-    level. Transport-specific reconnect loops, heartbeat policies, and
-    in-flight call recovery are still host/adapter concerns.
+- Registration replay snapshots are deterministic, idempotent at registry
+    level, and aligned with the published `rig-compose` descriptor surface.
+    Transport-specific reconnect loops, heartbeat policies, and in-flight call
+    recovery are still host/adapter concerns.
 - Transport tracing exists mostly through tests/logs, not a shared cross-crate trace envelope.
 - No alternate production transports are exposed; this is intentional until a concrete need appears.
 

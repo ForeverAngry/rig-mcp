@@ -22,10 +22,10 @@ It delegates JSON-RPC framing, capability handshakes, and protocol-version negot
 
 ## Status
 
-- Crate version: `0.1.4`.
+- Crate version: `0.2.0`.
 - Rust edition: 2024.
 - MSRV: 1.88.
-- `rig-compose` dependency: `version = "0.4"`.
+- `rig-compose` dependency: `version = "0.4.1"`.
 - `rmcp` dependency: `1.6` with `client`, `server`, `macros`, `transport-io`, and `transport-child-process` features only.
 - Current Unreleased work stores the cloneable `rmcp` peer directly in `StdioTransport`, eliminating a transport-level `tokio::sync::Mutex` around concurrent RPCs, and adds deterministic stdio failure fixtures.
 
@@ -43,13 +43,13 @@ coordination lives in
 - [src/transport.rs](src/transport.rs): `McpTool`, the adapter that wraps one remote schema and transport as a local `rig_compose::Tool`.
 - [src/transport.rs](src/transport.rs): `LoopbackTransport`, an in-process transport over `ToolRegistry` used for tests and embedding.
 - [src/replay.rs](src/replay.rs): `RegistrationSnapshot`, an adapter-local
-    snapshot of discovered remote tool schemas that can replay `McpTool`
+    snapshot of discovered remote tool descriptors that can replay `McpTool`
     registration after reconnects without pushing transport state into
     `rig-compose`.
 - [src/stdio.rs](src/stdio.rs): `StdioTransport`, the production child-process stdio MCP client backed by `rmcp`.
 - [src/stdio.rs](src/stdio.rs): `serve_stdio`, which exposes a `ToolRegistry` as an MCP tools-only server over the current process's stdin/stdout.
 
-Server-side `tools/list` is answered from `ToolRegistry::schemas`; `tools/call` dispatches to `ToolRegistry::invoke`. Client-side stdio calls are converted back into `ToolSchema` and JSON `Value` results.
+Server-side `tools/list` is answered from `ToolRegistry::descriptors`; `tools/call` dispatches to `ToolRegistry::invoke`. Client-side stdio calls are converted back into `ToolSchema` and JSON `Value` results.
 
 ## Integration With Rig
 
@@ -128,9 +128,10 @@ That recipe runs formatter checks, `cargo clippy --all-targets --all-features --
 - `StdioTransport` caches the cloneable `rmcp::Peer` and keeps the running service alive with an `Arc<RunningService<...>>`; dropping the transport drops the service and closes the child stdio.
 - `StdioTransport::call_tool` accepts object or null arguments. Other JSON shapes return `KernelError::InvalidArgument`.
 - MCP transports preserve structured tool output. Apply `rig_compose::bound_tool_result` at the dispatch/model-boundary layer when large object/string results need deterministic truncation metadata; use `result_cache::cache_if_large` when oversized array results should remain page-addressable by handle.
-- Reconnect replay is adapter-owned. Use `RegistrationSnapshot::discover` and
-    `RegistrationSnapshot::replay_into` for transports that can reconnect;
-    do not store replay state in `ToolRegistry`.
+- Reconnect replay is adapter-owned. Use `RegistrationSnapshot::discover`,
+    `RegistrationSnapshot::from_registry`, and `RegistrationSnapshot::replay_into`
+    for transports that can reconnect; do not store replay state in
+    `ToolRegistry`.
 
 ## Ecosystem
 
@@ -141,13 +142,13 @@ flowchart TD
     rig["rig / rig-core"]
     compose["rig-compose 0.4.x"]
     resources["rig-resources 0.1.x"]
-    mcp["rig-mcp 0.1.x"]
+    mcp["rig-mcp 0.2.x"]
     memvid["rig-memvid 0.1.x"]
     model_meta["rig-model-catalog 0.1.x"]
 
     compose -. "Rig-shaped kernel; no direct rig-core dep" .-> rig
     resources -- "rig-compose = 0.4; features: security, graph, full" --> compose
-    mcp -- "rig-compose = 0.4; rmcp stdio bridge" --> compose
+    mcp -- "rig-compose = 0.4.1; rmcp stdio bridge" --> compose
     memvid -- "rig-core = 0.37.0; features: lex, simd, vec, api_embed, temporal, encryption, compaction, context-projection" --> rig
     model_meta -. "optional rig-core = 0.37 via rig-hook" .-> rig
 ```
@@ -158,7 +159,7 @@ Pinned Rig-facing dependencies from the current manifests:
 | --- | --- | --- |
 | `rig-compose` | none | Defines a Rig-shaped kernel surface without depending on `rig-core`. |
 | `rig-resources` | `rig-compose = 0.4` | Provides reusable skills, resource tools, and security helpers. |
-| `rig-mcp` | `rig-compose = 0.4` | Bridges `rig-compose` tools over MCP stdio and loopback transports. |
+| `rig-mcp` | `rig-compose = 0.4.1` | Bridges `rig-compose` tools over MCP stdio and loopback transports. |
 | `rig-memvid` | `rig-core = 0.37.0`; optional `rig-compose = 0.4` | Implements Rig vector-store, prompt-hook, compaction, and context-projection flows over Memvid. |
 | `rig-model-catalog` | optional `rig-core = 0.37` via `rig-hook` | Provides standalone model traits plus optional Rig prompt-hook telemetry. |
 

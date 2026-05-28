@@ -131,10 +131,7 @@ impl McpTransport for LoopbackTransport {
     }
 
     async fn list_tools(&self) -> Result<Vec<ToolSchema>, KernelError> {
-        // The registry doesn't expose iteration directly to keep the
-        // trait surface small; for the loopback transport we walk the
-        // inner DashMap via a public helper added below.
-        Ok(self.registry.schemas())
+        Ok(self.registry.descriptors())
     }
 
     async fn call_tool(&self, name: &str, args: Value) -> Result<Value, KernelError> {

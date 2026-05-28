@@ -11,6 +11,12 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
 
+## [0.2.2](https://github.com/ForeverAngry/rig-mcp/compare/v0.2.1...v0.2.2) - 2026-05-28
+
+### Added
+
+- Add cached result transport tools
+
 ### Added
 
 - Add `CachedResultsTransport`, `CachedResultsConfig`, and cache page/release

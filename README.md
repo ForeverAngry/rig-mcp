@@ -28,7 +28,8 @@ It delegates JSON-RPC framing, capability handshakes, and protocol-version negot
 - `rig-compose` dependency: `version = "0.4.1"`.
 - `rmcp` dependency: `1.6` with `client`, `server`, `macros`, `transport-io`, and `transport-child-process` features only.
 - Current Unreleased work adds opt-in cached-result transport and page/release
-    tools for oversized MCP array results.
+    tools for oversized MCP array results plus structured `tracing` spans for
+    MCP spawn/list/call/server lifecycle events.
 
 The crate-local maturity plan lives in [ROADMAP.md](ROADMAP.md). Cross-crate
 coordination lives in
@@ -108,6 +109,15 @@ assert_eq!(output, json!(42));
 ```
 
 Production stdio behavior is implemented in [src/stdio.rs](src/stdio.rs). `serve_stdio` exposes a local `ToolRegistry`; `StdioTransport::spawn` starts a child process and speaks MCP over its stdio.
+
+MCP lifecycle operations emit structured `tracing` spans without depending on
+`rig-tap`: `mcp.stdio.spawn`, `mcp.stdio.list_tools`, `mcp.stdio.call_tool`,
+`mcp.stdio.serve`, `mcp.stdio_server.list_tools`,
+`mcp.stdio_server.call_tool`, `mcp.loopback.list_tools`, and
+`mcp.loopback.call_tool`. Spans carry fields such as `mcp.transport`,
+`mcp.endpoint`, `mcp.tool_name`, `mcp.tool_count`, `mcp.program`,
+`mcp.arg_count`, and `mcp.error` where relevant, so host subscribers and OTel
+bridges can stitch MCP work into their existing trace waterfall.
 
 [tests/stdio_failures.rs](tests/stdio_failures.rs) exercises a real child-process fixture for successful stdio calls, unknown tools, missing arguments, wrong argument types, malformed child output, and child exit before handshake.
 [tests/result_envelope.rs](tests/result_envelope.rs) verifies that oversized

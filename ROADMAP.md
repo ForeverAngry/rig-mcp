@@ -42,6 +42,10 @@ This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate co
 - Descriptor parity with `rig-compose` 0.4.1: loopback discovery and
     registry-backed snapshots use `ToolRegistry::descriptors()` instead of
     depending on registry storage details.
+- Structured `tracing` spans around stdio spawn, client list/call, server
+    list/call, and loopback list/call paths. Hosts can capture MCP lifecycle
+    timing and errors through their existing subscriber/OTel setup without a
+    hard dependency on `rig-tap`.
 
 ## Prototype Grade
 
@@ -53,18 +57,18 @@ This roadmap is the crate-local operating plan for `rig-mcp`. The cross-crate co
     level, and aligned with the published `rig-compose` descriptor surface.
     Transport-specific reconnect loops, heartbeat policies, and in-flight call
     recovery are still host/adapter concerns.
-- Transport tracing exists mostly through tests/logs, not a shared cross-crate trace envelope.
+- Transport tracing now emits structured spans for lifecycle timing/errors, but
+    reconnect, heartbeat, and in-flight recovery policies remain host/adapter
+    concerns.
 - No alternate production transports are exposed; this is intentional until a concrete need appears.
 
 ## Next Work
 
 1. Build on `result_cache`: add result search and schema/projection helpers if
     real hosts need more than page/release lifecycle tools.
-2. Add structured `tracing` spans around spawn/list/call/server dispatch so
-     host apps can capture MCP lifecycle without a hard dependency on `rig-tap`.
-3. Add timeout, heartbeat, in-flight call recovery, and background-job shapes
+2. Add timeout, heartbeat, in-flight call recovery, and background-job shapes
     for long-running MCP tools once host requirements are clearer.
-4. Keep the `rmcp` feature surface tight; add new transports only behind a feature and a documented use case.
+3. Keep the `rmcp` feature surface tight; add new transports only behind a feature and a documented use case.
 
 ## Maturity Bar
 

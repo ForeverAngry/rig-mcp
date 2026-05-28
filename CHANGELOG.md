@@ -25,10 +25,6 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ### Added
 
-- Add cached result transport tools
-
-### Added
-
 - Add `CachedResultsTransport`, `CachedResultsConfig`, and cache page/release
   tools for opt-in model-boundary caching of oversized MCP array results.
 
@@ -44,10 +40,6 @@ from [Conventional Commits](https://www.conventionalcommits.org/).
   loopback discovery and registry-backed registration snapshots.
 
 ## [0.2.0](https://github.com/ForeverAngry/rig-mcp/compare/v0.1.5...v0.2.0) - 2026-05-27
-
-### Added
-
-- Add cached result metadata and replay snapshots
 
 ### Added
 

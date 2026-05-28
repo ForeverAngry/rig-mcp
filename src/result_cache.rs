@@ -12,12 +12,12 @@
 //! 4. **Release** the handle when the caller is done so memory bounds
 //!    stay deterministic.
 //!
-//! `rig-mcp` does not yet auto-wire this into a transport; callers can
-//! invoke [`cache_if_large`] from their tool body to opt-in per tool, or
-//! register the cache as a [`rig_compose::tool::Tool`] for page/release
-//! companion calls. Transport-level integration (e.g. a
-//! `CachedResultsTransport<T>` wrapper) is a separate downstream concern
-//! and intentionally not landed here.
+//! `rig-mcp` keeps raw transports lossless. Callers can invoke
+//! [`cache_if_large`] directly, or opt into
+//! [`CachedResultsTransport`](crate::cache_tools::CachedResultsTransport) and
+//! the page/release tools from the [`cache_tools`](mod@crate::cache_tools)
+//! module at the
+//! model boundary.
 //!
 //! # Example
 //!

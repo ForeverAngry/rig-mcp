@@ -21,11 +21,16 @@
     )
 )]
 
+pub mod cache_tools;
 pub mod replay;
 pub mod result_cache;
 pub mod stdio;
 pub mod transport;
 
+pub use cache_tools::{
+    CACHE_PAGE_TOOL, CACHE_RELEASE_TOOL, CachedResultsConfig, CachedResultsTransport,
+    cache_page_tool, cache_release_tool, cache_tools, register_cache_tools,
+};
 pub use replay::{RegistrationReplayPolicy, RegistrationSnapshot};
 pub use result_cache::{
     CachedResultEnvelope, CachedResultHandle, MemoryResultCache, ResultCache, cache_if_large,

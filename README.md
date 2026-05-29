@@ -22,7 +22,7 @@ It delegates JSON-RPC framing, capability handshakes, and protocol-version negot
 
 ## Status
 
-- Crate version: `0.2.3`.
+- Crate version: `0.2.4`.
 - Rust edition: 2024.
 - MSRV: 1.88.
 - `rig-compose` dependency: `version = "0.4.1"`.

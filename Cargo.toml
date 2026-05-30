@@ -20,7 +20,7 @@ default = ["stdio"]
 stdio = ["dep:tokio", "rmcp/transport-io", "rmcp/transport-child-process"]
 
 [dependencies]
-rig-compose = "0.4.1"
+rig-compose = "0.5"
 async-trait = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

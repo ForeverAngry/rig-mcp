@@ -10,6 +10,12 @@ Versions are managed automatically by [release-plz](https://release-plz.dev/)
 from [Conventional Commits](https://www.conventionalcommits.org/).
 
 ## [Unreleased]
+
+## [0.2.6](https://github.com/ForeverAngry/rig-mcp/compare/v0.2.5...v0.2.6) - 2026-06-01
+
+### Documentation
+
+- Align README Status with shipped 0.2.5 ([#32](https://github.com/ForeverAngry/rig-mcp/pull/32))
 # Changelog
 
 All notable changes to this project are documented here. The format is based

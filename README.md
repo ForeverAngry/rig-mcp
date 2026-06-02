@@ -169,10 +169,10 @@ These companion crates are maintained as separate repositories. Together they fo
 ```mermaid
 flowchart TD
     rig["rig / rig-core"]
-    compose["rig-compose 0.4.x"]
-    resources["rig-resources 0.1.x"]
+    compose["rig-compose 0.5.x"]
+    resources["rig-resources 0.2.x"]
     mcp["rig-mcp 0.2.x"]
-    memvid["rig-memvid 0.1.x"]
+    memvid["rig-memvid 0.4.x"]
     model_meta["rig-model-catalog 0.1.x"]
 
     compose -. "Rig-shaped kernel; no direct rig-core dep" .-> rig
